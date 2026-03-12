@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formwave — Online Surveys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:    #0d0d0d;
+  --paper:  #f7f4ef;
+  --cream:  #ede9e1;
+  --rust:   #c84b2f;
+  --rust2:  #e05a38;
+  --sage:   #4a7c6f;
+  --gold:   #d4a843;
+  --muted:  #9a9589;
+  --border: #ddd8cf;
+  --white:  #ffffff;
+  --radius: 14px;
+  --shadow: 0 2px 20px rgba(13,13,13,.08);
+  --shadow-lg: 0 8px 48px rgba(13,13,13,.14);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, h4 { font-family: 'DM Serif Display', serif; line-height: 1.2; }
+h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); }
+h3 { font-size: 1.35rem; }
+h4 { font-size: 1.1rem; }
+
+/* ===== LAYOUT ===== */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+.navbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(247,244,239,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 clamp(1rem, 4vw, 3rem);
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem; color: var(--ink); text-decoration: none;
+  cursor: pointer;
+}
+.logo-mark {
+  width: 34px; height: 34px;
+  background: var(--rust);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 18px;
+}
+
+.nav-actions { display: flex; gap: 10px; }
+
+.main { flex: 1; padding: clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 3rem); max-width: 1100px; margin: 0 auto; width: 100%; }
+
+/* ===== VIEWS ===== */
+.view { display: none; animation: fadeUp .35s ease both; }
+.view.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px; border-radius: 10px; font-size: 14px;
+  font-family: 'DM Sans', sans-serif; font-weight: 500;
+  cursor: pointer; border: none; transition: all .2s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-primary { background: var(--rust); color: white; }
+.btn-primary:hover { background: var(--rust2); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(200,75,47,.3); }
+.btn-secondary { background: var(--cream); color: var(--ink); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--cream); }
+.btn-sage { background: var(--sage); color: white; }
+.btn-sage:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.btn-danger:hover { background: #fca5a5; }
+.btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 8px; }
+.btn-icon { padding: 8px; border-radius: 8px; background: var(--cream); border: 1px solid var(--border); cursor: pointer; transition: all .2s; color: var(--ink); }
+.btn-icon:hover { background: var(--border); }
+.btn:disabled { opacity: .5; pointer-events: none; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  transition: box-shadow .2s, transform .2s;
+}
+.card:hover { box-shadow: var(--shadow-lg); }
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+
+/* ===== FORMS ===== */
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; }
+.form-control {
+  width: 100%; padding: 11px 15px;
+  border: 1.5px solid var(--border); border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink);
+  background: var(--white); transition: border-color .2s, box-shadow .2s; outline: none;
+}
+.form-control:focus { border-color: var(--rust); box-shadow: 0 0 0 3px rgba(200,75,47,.12); }
+textarea.form-control { min-height: 90px; resize: vertical; }
+select.form-control { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9589' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+
+/* ===== HERO ===== */
+.hero {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;
+  padding: 60px 0 80px;
+}
+.hero-badge { display: inline-flex; align-items: center; gap: 6px; background: #fff3ef; color: var(--rust); border: 1px solid #fad5c8; border-radius: 99px; padding: 5px 14px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+.hero-title { margin-bottom: 18px; }
+.hero-title em { font-style: italic; color: var(--rust); }
+.hero-sub { color: var(--muted); font-size: 16px; max-width: 440px; margin-bottom: 28px; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-visual {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+.hero-visual::before {
+  content: '';
+  position: absolute; inset: -2px; border-radius: 22px;
+  background: linear-gradient(135deg, rgba(200,75,47,.15), rgba(74,124,111,.1));
+  z-index: -1;
+}
+.survey-preview { font-size: 14px; }
+.survey-preview-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 16px; }
+.preview-q { margin-bottom: 14px; padding: 12px; background: var(--cream); border-radius: 10px; }
+.preview-q-label { font-weight: 600; font-size: 13px; margin-bottom: 8px; color: var(--ink); }
+.preview-bar { height: 8px; border-radius: 99px; background: var(--border); margin-bottom: 6px; overflow: hidden; }
+.preview-bar-fill { height: 100%; border-radius: 99px; background: var(--rust); transition: width .8s ease; }
+.preview-opt { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+/* ===== STATS BAR ===== */
+.stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
+.stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; }
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--ink); }
+.stat-label { font-size: 13px; color: var(--muted); }
+
+/* ===== SURVEY LIST ===== */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.surveys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.survey-card { cursor: pointer; }
+.survey-card:hover { transform: translateY(-3px); }
+.survey-card-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.survey-type-badge { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; padding: 3px 10px; border-radius: 99px; }
+.badge-active { background: #d1fae5; color: #065f46; }
+.badge-inactive { background: #fee2e2; color: #991b1b; }
+.survey-card h3 { margin-bottom: 6px; }
+.survey-card p { font-size: 14px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+.survey-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--cream); }
+.survey-card-footer span { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.survey-card-actions { display: flex; gap: 7px; }
+.empty-state { text-align: center; padding: 80px 20px; color: var(--muted); }
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-state h3 { color: var(--ink); margin-bottom: 8px; }
+
+/* ===== SURVEY BUILDER ===== */
+.builder-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+.builder-main { display: flex; flex-direction: column; gap: 18px; }
+.builder-sidebar { position: sticky; top: 84px; display: flex; flex-direction: column; gap: 14px; }
+.question-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: all .2s; }
+.question-card.dragging { opacity: .5; border-style: dashed; }
+.question-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: var(--cream); border-bottom: 1px solid var(--border); }
+.q-num { width: 28px; height: 28px; border-radius: 8px; background: var(--rust); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.question-body { padding: 16px; }
+.options-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.option-row { display: flex; align-items: center; gap: 8px; }
+.option-row input { flex: 1; }
+.drag-handle { cursor: grab; color: var(--muted); padding: 4px; }
+.drag-handle:active { cursor: grabbing; }
+
+/* ===== SURVEY TAKE ===== */
+.take-header { margin-bottom: 36px; }
+.take-progress { margin-bottom: 10px; }
+.progress-bar { height: 6px; background: var(--cream); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+.progress-fill { height: 100%; background: var(--rust); border-radius: 99px; transition: width .4s ease; }
+.take-question { margin-bottom: 28px; }
+.take-question-num { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--rust); margin-bottom: 8px; }
+.take-question h3 { margin-bottom: 16px; }
+.required-star { color: var(--rust); margin-left: 3px; }
+
+/* Multiple choice / checkbox */
+.choices { display: flex; flex-direction: column; gap: 10px; }
+.choice-option {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; border-radius: 10px;
+  border: 1.5px solid var(--border); cursor: pointer;
+  transition: all .15s; font-size: 15px;
+  user-select: none;
+}
+.choice-option:hover { border-color: var(--rust); background: #fff3ef; }
+.choice-option.selected { border-color: var(--rust); background: #fff3ef; font-weight: 500; }
+.choice-indicator {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border: 2px solid var(--border); border-radius: 50%;
+  transition: all .15s; background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+}
+.choice-option.selected .choice-indicator { border-color: var(--rust); background: var(--rust); }
+.choice-option.selected .choice-indicator::after { content: ''; display: block; width: 8px; height: 8px; border-radius: 50%; background: white; }
+.checkbox-option .choice-indicator { border-radius: 5px; }
+.checkbox-option.selected .choice-indicator::after { content: '✓'; color: white; font-size: 12px; border-radius: 0; width: auto; height: auto; background: none; }
+
+/* Rating */
+.rating-scale { display: flex; gap: 8px; flex-wrap: wrap; }
+.rating-btn {
+  width: 46px; height: 46px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--white);
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: all .15s; font-family: 'DM Serif Display', serif;
+  color: var(--ink);
+}
+.rating-btn:hover, .rating-btn.selected { border-color: var(--rust); background: var(--rust); color: white; }
+.rating-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--muted); }
+
+/* Yes/No */
+.yes-no { display: flex; gap: 12px; }
+.yes-no-btn {
+  flex: 1; padding: 14px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--white); font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all .15s; font-family: 'DM Sans', sans-serif;
+}
+.yes-no-btn.yes:hover, .yes-no-btn.yes.selected { border-color: var(--sage); background: var(--sage); color: white; }
+.yes-no-btn.no:hover, .yes-no-btn.no.selected { border-color: var(--rust); background: var(--rust); color: white; }
+
+/* ===== RESULTS ===== */
+.results-header { margin-bottom: 32px; }
+.results-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+.results-meta span { font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.results-grid { display: flex; flex-direction: column; gap: 20px; }
+.result-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.result-card-header { margin-bottom: 18px; }
+.result-card-header h4 { margin-bottom: 4px; }
+.result-card-header p { font-size: 13px; color: var(--muted); }
+
+/* Bar chart */
+.bar-chart { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: flex; align-items: center; gap: 12px; }
+.bar-label { font-size: 14px; min-width: 130px; max-width: 160px; word-break: break-word; }
+.bar-track { flex: 1; height: 28px; background: var(--cream); border-radius: 6px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 6px; background: var(--rust); transition: width 1s cubic-bezier(.22,1,.36,1); min-width: 2px; }
+.bar-count { font-size: 14px; font-weight: 600; color: var(--ink); min-width: 32px; text-align: right; }
+.bar-pct { font-size: 12px; color: var(--muted); min-width: 38px; }
+
+/* Rating result */
+.rating-result { display: flex; align-items: center; gap: 24px; }
+.rating-big { font-family: 'DM Serif Display', serif; font-size: 3.5rem; color: var(--rust); line-height: 1; }
+.rating-stars { display: flex; gap: 4px; margin-top: 4px; }
+.star { font-size: 18px; }
+
+/* Text responses */
+.text-responses { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; }
+.text-response-item { padding: 12px 16px; background: var(--cream); border-radius: 8px; font-size: 14px; }
+
+/* ===== TOAST ===== */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,.15);
+  animation: toastIn .3s ease both;
+  max-width: 340px;
+  display: flex; align-items: center; gap: 10px;
+}
+.toast.success { background: #065f46; color: white; }
+.toast.error { background: #991b1b; color: white; }
+.toast.info { background: var(--ink); color: white; }
+@keyframes toastIn { from { transform: translateX(120%); opacity:0; } to { transform:none; opacity:1; } }
+@keyframes toastOut { to { transform: translateX(120%); opacity:0; } }
+
+/* ===== MODAL ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(13,13,13,.5); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); animation: fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal { background: var(--white); border-radius: 20px; max-width: 540px; width: 100%; padding: 32px; box-shadow: var(--shadow-lg); animation: slideUp .25s ease; max-height: 90vh; overflow-y: auto; }
+@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:none;opacity:1} }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--cream); }
+
+/* ===== SUBMIT SUCCESS ===== */
+.success-page { text-align: center; padding: 80px 20px; max-width: 480px; margin: 0 auto; }
+.success-icon { width: 80px; height: 80px; background: #d1fae5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 24px; }
+.success-page h2 { margin-bottom: 12px; }
+.success-page p { color: var(--muted); margin-bottom: 28px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+  .stats-bar { grid-template-columns: repeat(3, 1fr); }
+  .builder-layout { grid-template-columns: 1fr; }
+  .builder-sidebar { position: static; }
+}
+@media (max-width: 480px) {
+  .stats-bar { grid-template-columns: 1fr; }
+  .surveys-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== UTILS ===== */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.mt-2 { margin-top: 8px; }
+.mt-4 { margin-top: 16px; }
+.text-muted { color: var(--muted); }
+.text-sm { font-size: 13px; }
+.hidden { display: none !important; }
+.divider { height: 1px; background: var(--cream); margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a class="logo" onclick="showView('home')">
+      <div class="logo-mark">〜</div>
+      Formwave
+    </a>
+    <div class="nav-actions" id="navActions">
+      <button class="btn btn-secondary btn-sm" onclick="showView('home')">📋 Surveys</button>
+      <button class="btn btn-primary btn-sm" onclick="openNewSurveyModal()">+ New Survey</button>
+    </div>
+  </nav>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- HOME VIEW -->
+    <div class="view active" id="view-home">
+      <section class="hero">
+        <div class="hero-content">
+          <div class="hero-badge">✦ Real-time analytics</div>
+          <h1 class="hero-title">Surveys that <em>actually</em> get answered</h1>
+          <p class="hero-sub">Build beautiful surveys, share them instantly, and turn responses into insights that matter.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="openNewSurveyModal()">+ Create Survey</button>
+            <button class="btn btn-ghost" onclick="scrollToSurveys()">View All Surveys ↓</button>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="survey-preview">
+            <div class="survey-preview-title">Customer Satisfaction Survey</div>
+            <div class="preview-q">
+              <div class="preview-q-label">Overall experience?</div>
+              <div>
+                <div class="preview-opt"><span>Excellent</span><span>62%</span></div>
+                <div class="preview-bar"><div class="preview-bar-fill" style="width:0%" data-width="62%"></div></div>
+                <div class="preview-opt"><span>Good</span><span>28%</span></div>
+                <div class="preview-bar"><div class="preview-bar-fill" style="width:0%" data-width="28%" style="background:var(--sage)"></div></div>
+                <div class="preview-opt"><span>Needs work</span><span>10%</span></div>
+                <div class="preview-bar"><div class="preview-bar-fill" style="width:0%" data-width="10%" style="background:var(--muted)"></div></div>
+              </div>
+            </div>
+            <div class="preview-q">
+              <div class="preview-q-label">Would recommend? <span style="color:var(--sage);font-weight:700">Yes 88%</span></div>
+            </div>
+            <div style="margin-top:12px;font-size:12px;color:var(--muted)">📊 142 responses · Updated just now</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-card">
+          <div class="stat-num" id="statSurveys">0</div>
+          <div class="stat-label">Total Surveys</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statResponses">0</div>
+          <div class="stat-label">Total Responses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="statActive">0</div>
+          <div class="stat-label">Active Surveys</div>
+        </div>
+      </div>
+
+      <div id="surveysSection">
+        <div class="section-header">
+          <h2>Your Surveys</h2>
+          <button class="btn btn-primary btn-sm" onclick="openNewSurveyModal()">+ Create Survey</button>
+        </div>
+        <div class="surveys-grid" id="surveysGrid">
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon">📝</div>
+            <h3>No surveys yet</h3>
+            <p>Create your first survey to start collecting responses</p>
+            <button class="btn btn-primary mt-4" onclick="openNewSurveyModal()">+ Create Survey</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUILD VIEW -->
+    <div class="view" id="view-build">
+      <div style="margin-bottom:24px;display:flex;align-items:center;gap:12px">
+        <button class="btn btn-ghost btn-sm" onclick="showView('home')">← Back</button>
+        <h2 id="buildTitle">Edit Survey</h2>
+      </div>
+      <div class="builder-layout">
+        <div class="builder-main" id="builderMain">
+          <!-- Survey info card -->
+          <div class="card">
+            <h3 style="margin-bottom:18px">Survey Details</h3>
+            <div class="form-group">
+              <label class="form-label">Survey Title *</label>
+              <input class="form-control" id="surveyTitle" placeholder="e.g. Customer Satisfaction 2024" />
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" id="surveyDesc" placeholder="Optional — tell respondents what this survey is about…"></textarea>
+            </div>
+          </div>
+
+          <!-- Questions -->
+          <div id="questionsContainer"></div>
+
+          <button class="btn btn-secondary" onclick="addQuestion()" style="align-self:flex-start">+ Add Question</button>
+        </div>
+
+        <div class="builder-sidebar">
+          <div class="card">
+            <h4 style="margin-bottom:14px">Question Types</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+              <div style="padding:10px;background:var(--cream);border-radius:8px"><b>🔘 Multiple Choice</b><div class="text-muted text-sm">Pick one answer</div></div>
+              <div style="padding:10px;background:var(--cream);border-radius:8px"><b>☑️ Checkbox</b><div class="text-muted text-sm">Pick multiple answers</div></div>
+              <div style="padding:10px;background:var(--cream);border-radius:8px"><b>📝 Text</b><div class="text-muted text-sm">Free-form response</div></div>
+              <div style="padding:10px;background:var(--cream);border-radius:8px"><b>⭐ Rating</b><div class="text-muted text-sm">1–10 scale</div></div>
+              <div style="padding:10px;background:var(--cream);border-radius:8px"><b>✅ Yes / No</b><div class="text-muted text-sm">Binary choice</div></div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveSurvey()">💾 Save Survey</button>
+          <button class="btn btn-secondary" onclick="showView('home')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAKE SURVEY VIEW -->
+    <div class="view" id="view-take">
+      <div id="takeSurveyContent"></div>
+    </div>
+
+    <!-- RESULTS VIEW -->
+    <div class="view" id="view-results">
+      <div id="resultsContent"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- NEW SURVEY MODAL -->
+<div class="modal-overlay hidden" id="newSurveyModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create New Survey</h3>
+      <button class="btn-icon" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Survey Title *</label>
+      <input class="form-control" id="modalTitle" placeholder="e.g. Customer Feedback Q4" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" id="modalDesc" placeholder="Optional description…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createSurveyFromModal()">Create & Add Questions →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const API_BASE = 'http://localhost:8080/api'; // Change to your server URL
+let USE_MOCK = true; // Set to false when Java backend is running
+
+// ============================================================
+// MOCK DATA (in-memory store when backend is offline)
+// ============================================================
+const mock = {
+  surveys: [
+    {
+      id: 1,
+      title: 'Customer Satisfaction Survey',
+      description: 'Help us improve our service by sharing your experience.',
+      active: true,
+      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      responseCount: 142,
+      questions: [
+        { id: 1, text: 'How would you rate your overall experience?', type: 'MULTIPLE_CHOICE', orderIndex: 0, required: true, options: ['Excellent','Good','Neutral','Poor','Terrible'] },
+        { id: 2, text: 'Would you recommend us to a friend?', type: 'YES_NO', orderIndex: 1, required: true, options: [] },
+        { id: 3, text: 'On a scale of 1–10, how satisfied are you?', type: 'RATING', orderIndex: 2, required: false, options: [] },
+        { id: 4, text: 'What could we improve?', type: 'TEXT', orderIndex: 3, required: false, options: [] },
+      ]
+    },
+    {
+      id: 2,
+      title: 'Product Feature Feedback',
+      description: 'Tell us which features matter most to you.',
+      active: true,
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      responseCount: 57,
+      questions: [
+        { id: 5, text: 'Which features do you use most?', type: 'CHECKBOX', orderIndex: 0, required: true, options: ['Dashboard','Reports','Integrations','Mobile App','API Access'] },
+        { id: 6, text: 'How satisfied are you with the current features?', type: 'RATING', orderIndex: 1, required: true, options: [] },
+        { id: 7, text: 'Any feature requests?', type: 'TEXT', orderIndex: 2, required: false, options: [] },
+      ]
+    }
+  ],
+  nextId: 3,
+  nextQId: 8,
+  answers: {
+    1: {
+      1: [['Excellent',88],['Good',40],['Neutral',10],['Poor',4]],
+      2: [['Yes',125],['No',17]],
+      3: [['8',40],['9',55],['10',30],['7',12],['6',5]],
+      4: [['Faster response times'],['More customization options'],['Better mobile app'],['Love everything!']]
+    },
+    2: {
+      5: [['Dashboard',45],['Reports',38],['Integrations',22],['Mobile App',18],['API Access',30]],
+      6: [['8',18],['9',22],['10',10],['7',7]],
+      7: [['Dark mode please!'],['More export formats'],['Bulk operations']]
+    }
+  }
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let currentSurveyId = null;
+let editingQuestions = [];
+let currentAnswers = {};
+
+// ============================================================
+// API LAYER (tries real API, falls back to mock)
+// ============================================================
+async function apiGet(path) {
+  if (USE_MOCK) return mockGet(path);
+  try {
+    const r = await fetch(API_BASE + path);
+    if (!r.ok) throw new Error(r.statusText);
+    return await r.json();
+  } catch(e) {
+    console.warn('API unavailable, using mock:', e.message);
+    USE_MOCK = true;
+    return mockGet(path);
+  }
+}
+
+async function apiPost(path, body) {
+  if (USE_MOCK) return mockPost(path, body);
+  try {
+    const r = await fetch(API_BASE + path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(r.statusText);
+    return await r.json();
+  } catch(e) {
+    USE_MOCK = true;
+    return mockPost(path, body);
+  }
+}
+
+async function apiDelete(path) {
+  if (USE_MOCK) return mockDelete(path);
+  try {
+    await fetch(API_BASE + path, { method:'DELETE' });
+  } catch(e) {
+    USE_MOCK = true;
+    return mockDelete(path);
+  }
+}
+
+// ---- MOCK implementations ----
+function mockGet(path) {
+  const m = path.match(/\/surveys\/(\d+)\/results/);
+  if (m) return buildMockResults(+m[1]);
+  const m2 = path.match(/\/surveys\/(\d+)$/);
+  if (m2) return mock.surveys.find(s => s.id === +m2[1]) || null;
+  if (path === '/surveys') return [...mock.surveys];
+  return null;
+}
+
+function mockPost(path, body) {
+  const mSubmit = path.match(/\/surveys\/(\d+)\/submit/);
+  if (mSubmit) {
+    const sid = +mSubmit[1];
+    const survey = mock.surveys.find(s => s.id === sid);
+    if (survey) {
+      survey.responseCount++;
+      // Store answers
+      if (!mock.answers[sid]) mock.answers[sid] = {};
+      const ans = body.answers || {};
+      for (const [qid, val] of Object.entries(ans)) {
+        if (!mock.answers[sid][qid]) mock.answers[sid][qid] = [];
+        if (Array.isArray(mock.answers[sid][qid]) && mock.answers[sid][qid].length && Array.isArray(mock.answers[sid][qid][0])) {
+          // distribution format: find or add
+          const vals = val.split(',');
+          vals.forEach(v => {
+            const existing = mock.answers[sid][qid].find(x => x[0] === v.trim());
+            if (existing) existing[1]++; else mock.answers[sid][qid].push([v.trim(), 1]);
+          });
+        } else {
+          mock.answers[sid][qid].push(val);
+        }
+      }
+    }
+    return { message: 'Response submitted successfully' };
+  }
+  if (path === '/surveys') {
+    const s = { ...body, id: mock.nextId++, createdAt: new Date().toISOString(), responseCount: 0 };
+    if (s.questions) s.questions.forEach((q,i) => { q.id = mock.nextQId++; q.orderIndex = i; });
+    mock.surveys.unshift(s);
+    return s;
+  }
+  return {};
+}
+
+function mockDelete(path) {
+  const m = path.match(/\/surveys\/(\d+)$/);
+  if (m) mock.surveys = mock.surveys.filter(s => s.id !== +m[1]);
+}
+
+function buildMockResults(surveyId) {
+  const survey = mock.surveys.find(s => s.id === surveyId);
+  if (!survey) return null;
+  const answerData = mock.answers[surveyId] || {};
+  const questions = survey.questions.map(q => {
+    const raw = answerData[q.id] || [];
+    let distribution = {};
+    let textResponses = [];
+    if (q.type === 'TEXT') {
+      textResponses = raw.map(r => Array.isArray(r) ? r[0] : r);
+    } else {
+      if (Array.isArray(raw) && raw.length && Array.isArray(raw[0])) {
+        raw.forEach(([val, cnt]) => distribution[val] = cnt);
+      } else {
+        raw.forEach(r => { distribution[r] = (distribution[r] || 0) + 1; });
+      }
+    }
+    let totalAnswers = Object.values(distribution).reduce((a,b)=>a+b,0);
+    let averageRating = null;
+    if (q.type === 'RATING') {
+      const sum = Object.entries(distribution).reduce((acc,[v,c])=>acc+Number(v)*c,0);
+      averageRating = totalAnswers ? Math.round(sum/totalAnswers*10)/10 : null;
+    }
+    return { questionId:q.id, questionText:q.text, questionType:q.type, options:q.options||[], distribution, totalAnswers, averageRating, textResponses };
+  });
+  return { surveyId, title:survey.title, description:survey.description, totalResponses:survey.responseCount, createdAt:survey.createdAt, questions };
+}
+
+// ============================================================
+// VIEWS
+// ============================================================
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (name === 'home') loadHome();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// HOME
+// ============================================================
+async function loadHome() {
+  const surveys = await apiGet('/surveys');
+  const grid = document.getElementById('surveysGrid');
+  const total = surveys.length;
+  const totalResp = surveys.reduce((a,s) => a + (s.responseCount||0), 0);
+  const active = surveys.filter(s => s.active).length;
+
+  document.getElementById('statSurveys').textContent = total;
+  document.getElementById('statResponses').textContent = totalResp;
+  document.getElementById('statActive').textContent = active;
+
+  if (!surveys.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📝</div><h3>No surveys yet</h3><p>Create your first survey to start collecting responses</p><button class="btn btn-primary mt-4" onclick="openNewSurveyModal()">+ Create Survey</button></div>`;
+    return;
+  }
+
+  grid.innerHTML = surveys.map(s => `
+    <div class="card survey-card" onclick="takeSurvey(${s.id})">
+      <div class="survey-card-meta">
+        <span class="survey-type-badge ${s.active ? 'badge-active':'badge-inactive'}">${s.active?'Active':'Inactive'}</span>
+        <span class="text-muted text-sm">${formatDate(s.createdAt)}</span>
+      </div>
+      <h3>${esc(s.title)}</h3>
+      <p>${esc(s.description || 'No description')}</p>
+      <div class="survey-card-footer">
+        <span>📊 ${s.responseCount||0} responses</span>
+        <span>❓ ${(s.questions||[]).length} questions</span>
+        <div class="survey-card-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-secondary" onclick="editSurvey(${s.id})">✏️ Edit</button>
+          <button class="btn btn-sm btn-sage" onclick="viewResults(${s.id})">📊 Results</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteSurvey(${s.id})">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Animate hero bars
+  setTimeout(() => {
+    document.querySelectorAll('.preview-bar-fill').forEach(el => {
+      el.style.width = el.dataset.width;
+    });
+  }, 200);
+}
+
+function scrollToSurveys() {
+  document.getElementById('surveysSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openNewSurveyModal() {
+  document.getElementById('newSurveyModal').classList.remove('hidden');
+  document.getElementById('modalTitle').value = '';
+  document.getElementById('modalDesc').value = '';
+  setTimeout(() => document.getElementById('modalTitle').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('newSurveyModal').classList.add('hidden');
+}
+
+async function createSurveyFromModal() {
+  const title = document.getElementById('modalTitle').value.trim();
+  if (!title) { toast('Please enter a survey title', 'error'); return; }
+  const desc = document.getElementById('modalDesc').value.trim();
+  closeModal();
+  openBuilder(null, title, desc);
+}
+
+// ============================================================
+// SURVEY BUILDER
+// ============================================================
+function openBuilder(surveyId, title = '', desc = '') {
+  currentSurveyId = surveyId;
+  document.getElementById('surveyTitle').value = title;
+  document.getElementById('surveyDesc').value = desc;
+  document.getElementById('buildTitle').textContent = surveyId ? 'Edit Survey' : 'New Survey';
+  editingQuestions = [];
+  if (surveyId) {
+    apiGet('/surveys/' + surveyId).then(s => {
+      if (s) {
+        document.getElementById('surveyTitle').value = s.title;
+        document.getElementById('surveyDesc').value = s.description || '';
+        editingQuestions = (s.questions||[]).map(q => ({ ...q, options: q.options || [] }));
+        renderQuestions();
+      }
+    });
+  } else {
+    // Start with one question
+    editingQuestions = [newQuestion()];
+    renderQuestions();
+  }
+  showView('build');
+}
+
+function newQuestion() {
+  return { id: null, _tempId: Date.now() + Math.random(), text: '', type: 'MULTIPLE_CHOICE', required: false, options: ['Option 1', 'Option 2'] };
+}
+
+function addQuestion() {
+  editingQuestions.push(newQuestion());
+  renderQuestions();
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.question-card');
+    if (cards.length) cards[cards.length-1].scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 100);
+}
+
+function removeQuestion(idx) {
+  editingQuestions.splice(idx, 1);
+  renderQuestions();
+}
+
+function updateQuestion(idx, field, value) {
+  editingQuestions[idx][field] = value;
+  if (field === 'type') renderQuestions();
+}
+
+function addOption(idx) {
+  editingQuestions[idx].options.push('Option ' + (editingQuestions[idx].options.length + 1));
+  renderQuestions();
+}
+
+function removeOption(qIdx, oIdx) {
+  editingQuestions[qIdx].options.splice(oIdx, 1);
+  renderQuestions();
+}
+
+function updateOption(qIdx, oIdx, value) {
+  editingQuestions[qIdx].options[oIdx] = value;
+}
+
+const NEEDS_OPTIONS = ['MULTIPLE_CHOICE','CHECKBOX'];
+
+function renderQuestions() {
+  const container = document.getElementById('questionsContainer');
+  if (!editingQuestions.length) {
+    container.innerHTML = '<div class="text-muted text-sm" style="padding:12px">No questions yet. Click "+ Add Question" to start.</div>';
+    return;
+  }
+  container.innerHTML = editingQuestions.map((q, idx) => `
+    <div class="question-card" id="qcard-${idx}">
+      <div class="question-header">
+        <span class="q-num">${idx+1}</span>
+        <span style="flex:1;font-size:14px;font-weight:600;color:var(--muted)">Question ${idx+1}</span>
+        <label style="font-size:13px;display:flex;align-items:center;gap:5px;color:var(--muted);cursor:pointer">
+          <input type="checkbox" ${q.required?'checked':''} onchange="updateQuestion(${idx},'required',this.checked)" style="accent-color:var(--rust)"> Required
+        </label>
+        <button class="btn-icon" onclick="removeQuestion(${idx})" title="Remove">✕</button>
+      </div>
+      <div class="question-body">
+        <div class="form-group">
+          <label class="form-label">Question Text</label>
+          <input class="form-control" value="${esc(q.text)}" placeholder="Type your question here…" oninput="editingQuestions[${idx}].text=this.value" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Answer Type</label>
+          <select class="form-control" onchange="updateQuestion(${idx},'type',this.value)">
+            ${['MULTIPLE_CHOICE','CHECKBOX','TEXT','RATING','YES_NO'].map(t => `<option value="${t}" ${q.type===t?'selected':''}>${typeLabel(t)}</option>`).join('')}
+          </select>
+        </div>
+        ${NEEDS_OPTIONS.includes(q.type) ? `
+          <div>
+            <label class="form-label">Options</label>
+            <div class="options-list">
+              ${q.options.map((opt,oIdx) => `
+                <div class="option-row">
+                  <input class="form-control" value="${esc(opt)}" placeholder="Option ${oIdx+1}" oninput="updateOption(${idx},${oIdx},this.value)" />
+                  <button class="btn-icon" onclick="removeOption(${idx},${oIdx})" ${q.options.length<=2?'disabled':''}>✕</button>
+                </div>
+              `).join('')}
+            </div>
+            <button class="btn btn-ghost btn-sm mt-2" onclick="addOption(${idx})">+ Add Option</button>
+          </div>
+        ` : ''}
+        ${q.type==='RATING' ? `<p class="text-muted text-sm mt-2">Respondents will rate on a scale from 1 to 10.</p>` : ''}
+        ${q.type==='YES_NO' ? `<p class="text-muted text-sm mt-2">Respondents will choose Yes or No.</p>` : ''}
+        ${q.type==='TEXT' ? `<p class="text-muted text-sm mt-2">Respondents will type a free-form text answer.</p>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveSurvey() {
+  const title = document.getElementById('surveyTitle').value.trim();
+  const desc = document.getElementById('surveyDesc').value.trim();
+  if (!title) { toast('Please enter a survey title', 'error'); return; }
+  if (!editingQuestions.length) { toast('Add at least one question', 'error'); return; }
+
+  // Sync any unsaved input values
+  editingQuestions.forEach((q, idx) => {
+    const textEl = document.querySelector(`#qcard-${idx} input.form-control`);
+    if (textEl) q.text = textEl.value;
+  });
+
+  const incomplete = editingQuestions.find(q => !q.text.trim());
+  if (incomplete) { toast('All questions must have text', 'error'); return; }
+
+  const payload = {
+    title, description: desc, active: true,
+    questions: editingQuestions.map((q, i) => ({
+      ...(q.id ? { id: q.id } : {}),
+      text: q.text, type: q.type, orderIndex: i,
+      required: q.required,
+      optionsData: NEEDS_OPTIONS.includes(q.type) ? q.options.join('|') : '',
+      options: NEEDS_OPTIONS.includes(q.type) ? q.options : []
+    }))
+  };
+
+  if (currentSurveyId) {
+    // Update - for mock, just update in place
+    const existing = mock.surveys.find(s => s.id === currentSurveyId);
+    if (existing) {
+      existing.title = title;
+      existing.description = desc;
+      existing.questions = payload.questions.map((q, i) => ({
+        ...q, id: q.id || mock.nextQId++, orderIndex: i, options: NEEDS_OPTIONS.includes(q.type) ? q.options : []
+      }));
+    }
+    toast('Survey updated!', 'success');
+  } else {
+    await apiPost('/surveys', payload);
+    toast('Survey created!', 'success');
+  }
+  showView('home');
+}
+
+// ============================================================
+// TAKE SURVEY
+// ============================================================
+async function takeSurvey(id) {
+  const survey = await apiGet('/surveys/' + id);
+  if (!survey) { toast('Survey not found', 'error'); return; }
+  currentSurveyId = id;
+  currentAnswers = {};
+  renderTakeSurvey(survey);
+  showView('take');
+}
+
+function renderTakeSurvey(survey) {
+  const questions = survey.questions || [];
+  const html = `
+    <div class="take-header">
+      <div class="take-progress">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="text-muted text-sm">${questions.length} question${questions.length!==1?'s':''}</span>
+          <span class="text-muted text-sm" id="progressText">0 / ${questions.length} answered</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      </div>
+      <h2 style="margin-top:16px">${esc(survey.title)}</h2>
+      ${survey.description ? `<p class="text-muted" style="margin-top:8px">${esc(survey.description)}</p>` : ''}
+    </div>
+    <div id="questionsArea">
+      ${questions.map((q, idx) => renderTakeQuestion(q, idx, questions.length)).join('')}
+    </div>
+    <div style="margin-top:32px;display:flex;gap:12px;align-items:center">
+      <button class="btn btn-primary" onclick="submitSurvey()">Submit Responses →</button>
+      <button class="btn btn-ghost" onclick="showView('home')">Cancel</button>
+    </div>
+  `;
+  document.getElementById('takeSurveyContent').innerHTML = html;
+}
+
+function renderTakeQuestion(q, idx, total) {
+  const options = q.options || [];
+  let body = '';
+
+  if (q.type === 'MULTIPLE_CHOICE') {
+    body = `<div class="choices">${options.map(o => `
+      <label class="choice-option" onclick="selectChoice(${q.id},'${esc(o)}',this,'single')">
+        <div class="choice-indicator"></div>
+        <span>${esc(o)}</span>
+      </label>`).join('')}</div>`;
+  } else if (q.type === 'CHECKBOX') {
+    body = `<div class="choices">${options.map(o => `
+      <label class="choice-option checkbox-option" onclick="toggleCheckbox(${q.id},'${esc(o)}',this)">
+        <div class="choice-indicator"></div>
+        <span>${esc(o)}</span>
+      </label>`).join('')}</div>`;
+  } else if (q.type === 'TEXT') {
+    body = `<textarea class="form-control" rows="3" placeholder="Type your answer here…" oninput="setAnswer(${q.id},this.value);updateProgress()"></textarea>`;
+  } else if (q.type === 'RATING') {
+    body = `
+      <div class="rating-scale" id="rating-${q.id}">
+        ${Array.from({length:10},(_,i)=>`<button class="rating-btn" onclick="selectRating(${q.id},${i+1},this)">${i+1}</button>`).join('')}
+      </div>
+      <div class="rating-labels"><span>Not satisfied</span><span>Very satisfied</span></div>`;
+  } else if (q.type === 'YES_NO') {
+    body = `
+      <div class="yes-no">
+        <button class="yes-no-btn yes" onclick="selectYesNo(${q.id},'Yes',this,document.querySelector('.no-btn-${q.id}'))">👍 Yes</button>
+        <button class="yes-no-btn no no-btn-${q.id}" onclick="selectYesNo(${q.id},'No',document.querySelector('.yes-no-btn.yes'),this)">👎 No</button>
+      </div>`;
+  }
+
+  return `
+    <div class="take-question" id="tq-${q.id}">
+      <div class="take-question-num">Question ${idx+1} of ${total}${q.required ? ' <span class="required-star">*</span>' : ''}</div>
+      <h3>${esc(q.text)}</h3>
+      ${body}
+    </div>`;
+}
+
+function selectChoice(qId, value, el, mode) {
+  el.closest('.choices').querySelectorAll('.choice-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  setAnswer(qId, value);
+}
+
+function toggleCheckbox(qId, value, el) {
+  el.classList.toggle('selected');
+  const selected = [...el.closest('.choices').querySelectorAll('.selected')].map(e => e.querySelector('span').textContent);
+  setAnswer(qId, selected.join(','));
+}
+
+function selectRating(qId, val, btn) {
+  btn.closest('.rating-scale').querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  setAnswer(qId, String(val));
+}
+
+function selectYesNo(qId, val, yeBtn, noBtn) {
+  // re-select based on val
+  document.querySelectorAll(`#tq-${qId} .yes-no-btn`).forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+  setAnswer(qId, val);
+}
+
+function setAnswer(qId, value) {
+  currentAnswers[qId] = value;
+  updateProgress();
+}
+
+function updateProgress() {
+  const questions = document.querySelectorAll('.take-question');
+  const total = questions.length;
+  const answered = Object.keys(currentAnswers).filter(k => currentAnswers[k] !== '').length;
+  const pct = total ? Math.round(answered/total*100) : 0;
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  if (fill) fill.style.width = pct + '%';
+  if (text) text.textContent = answered + ' / ' + total + ' answered';
+}
+
+async function submitSurvey() {
+  // Validate required questions
+  const survey = await apiGet('/surveys/' + currentSurveyId);
+  const required = (survey.questions||[]).filter(q => q.required);
+  const missing = required.filter(q => !currentAnswers[q.id] || currentAnswers[q.id] === '');
+  if (missing.length) {
+    toast(`Please answer all required questions (${missing.length} remaining)`, 'error');
+    const firstMissing = document.getElementById('tq-' + missing[0].id);
+    if (firstMissing) firstMissing.scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+
+  const ansMap = {};
+  for (const [k, v] of Object.entries(currentAnswers)) ansMap[+k] = v;
+
+  await apiPost('/surveys/' + currentSurveyId + '/submit', { answers: ansMap });
+
+  // Show success
+  document.getElementById('takeSurveyContent').innerHTML = `
+    <div class="success-page">
+      <div class="success-icon">✓</div>
+      <h2>Thank you!</h2>
+      <p>Your response has been recorded. We appreciate you taking the time to share your feedback.</p>
+      <button class="btn btn-primary" onclick="showView('home')">Back to Surveys</button>
+      <button class="btn btn-ghost" style="margin-left:10px" onclick="viewResults(${currentSurveyId})">View Results 📊</button>
+    </div>`;
+}
+
+// ============================================================
+// RESULTS
+// ============================================================
+async function viewResults(id) {
+  currentSurveyId = id;
+  const results = await apiGet('/surveys/' + id + '/results');
+  if (!results) { toast('Could not load results', 'error'); return; }
+  renderResults(results);
+  showView('results');
+}
+
+function renderResults(r) {
+  const html = `
+    <div class="results-header">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <button class="btn btn-ghost btn-sm" onclick="showView('home')">← Back</button>
+        <h2>${esc(r.title)}</h2>
+      </div>
+      <div class="results-meta">
+        <span>📊 ${r.totalResponses} total responses</span>
+        <span>❓ ${r.questions.length} questions</span>
+        <span>📅 Created ${formatDate(r.createdAt)}</span>
+        <button class="btn btn-primary btn-sm" onclick="takeSurvey(${r.surveyId})" style="margin-left:auto">Take Survey →</button>
+      </div>
+      ${r.description ? `<p class="text-muted" style="margin-top:10px">${esc(r.description)}</p>` : ''}
+    </div>
+    <div class="results-grid">
+      ${r.questions.map(q => renderQuestionResult(q, r.totalResponses)).join('')}
+    </div>`;
+  document.getElementById('resultsContent').innerHTML = html;
+
+  // Animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill[data-pct]').forEach(el => {
+      el.style.width = el.dataset.pct + '%';
+    });
+  }, 100);
+}
+
+function renderQuestionResult(q, totalResponses) {
+  let body = '';
+  const dist = q.distribution || {};
+  const total = q.totalAnswers || 0;
+
+  if (q.questionType === 'RATING') {
+    const avg = q.averageRating || 0;
+    const stars = Math.round(avg);
+    body = `
+      <div class="rating-result">
+        <div>
+          <div class="rating-big">${avg.toFixed(1)}</div>
+          <div class="text-muted text-sm">avg. rating</div>
+          <div class="rating-stars">${Array.from({length:10},(_,i)=>`<span class="star">${i<stars?'⭐':'☆'}</span>`).join('')}</div>
+        </div>
+        <div class="bar-chart" style="flex:1">
+          ${Object.entries(dist).sort((a,b)=>Number(a[0])-Number(b[0])).map(([v,c])=>{
+            const pct = total ? Math.round(c/total*100) : 0;
+            return `<div class="bar-row">
+              <div class="bar-label">${esc(v)}/10</div>
+              <div class="bar-track"><div class="bar-fill" data-pct="${pct}" style="width:0%"></div></div>
+              <div class="bar-count">${c}</div>
+              <div class="bar-pct">${pct}%</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  } else if (q.questionType === 'TEXT') {
+    const responses = q.textResponses || [];
+    body = `<div class="text-responses">${responses.length ? responses.map(r=>`<div class="text-response-item">${esc(r)}</div>`).join('') : '<div class="text-muted text-sm">No text responses yet</div>'}</div>`;
+  } else {
+    const entries = q.questionType === 'MULTIPLE_CHOICE' || q.questionType === 'YES_NO'
+      ? (q.options && q.options.length
+          ? q.options.map(o => [o, dist[o]||0])
+          : Object.entries(dist))
+      : Object.entries(dist);
+
+    body = `<div class="bar-chart">
+      ${entries.map(([v,c])=>{
+        const pct = total ? Math.round(c/total*100) : 0;
+        const color = v==='Yes' ? 'var(--sage)' : v==='No' ? 'var(--rust)' : 'var(--rust)';
+        return `<div class="bar-row">
+          <div class="bar-label">${esc(v)}</div>
+          <div class="bar-track"><div class="bar-fill" data-pct="${pct}" style="width:0%;background:${color}"></div></div>
+          <div class="bar-count">${c}</div>
+          <div class="bar-pct">${pct}%</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  return `
+    <div class="result-card">
+      <div class="result-card-header">
+        <h4>${esc(q.questionText)}</h4>
+        <p>${total} response${total!==1?'s':''} · ${typeLabel(q.questionType)}</p>
+      </div>
+      ${body}
+    </div>`;
+}
+
+// ============================================================
+// EDIT / DELETE
+// ============================================================
+async function editSurvey(id) {
+  openBuilder(id);
+}
+
+async function deleteSurvey(id) {
+  if (!confirm('Delete this survey and all its responses? This cannot be undone.')) return;
+  await apiDelete('/surveys/' + id);
+  toast('Survey deleted', 'info');
+  loadHome();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function typeLabel(t) {
+  return { MULTIPLE_CHOICE:'Multiple Choice', CHECKBOX:'Checkbox', TEXT:'Text', RATING:'Rating', YES_NO:'Yes / No' }[t] || t;
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type==='success'?'✓':type==='error'?'✕':'ℹ'}</span>${esc(msg)}`;
+  container.appendChild(el);
+  setTimeout(() => { el.style.animation = 'toastOut .3s ease forwards'; setTimeout(() => el.remove(), 300); }, 3200);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadHome();
+  // Check if real API is available
+  if (!USE_MOCK) {
+    fetch(API_BASE + '/surveys').then(r => {
+      if (!r.ok) USE_MOCK = true;
+    }).catch(() => { USE_MOCK = true; });
+  }
+});
+</script>
+</body>
+</html>
