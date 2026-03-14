@@ -1,1 +1,0 @@
-{"build": {"builder": "NIXPACKS", "buildCommand": "cd backend && mvn clean package -DskipTests"}, "deploy": {"startCommand": "cd backend && java -jar backend/target/survey-app-1.0.0.jar", "restartPolicyType": "ON_FAILURE"}} 
