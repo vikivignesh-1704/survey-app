@@ -1223,8 +1223,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check if real API is available
   if (!USE_MOCK) {
     fetch(API_BASE + '/surveys').then(r => {
-      if (!r.ok) USE_MOCK = true;
-    }).catch(() => { USE_MOCK = true; });
+      if (!r.ok) console.log('API error');
+    }).catch(() => { });
   }
 });
 </script>
